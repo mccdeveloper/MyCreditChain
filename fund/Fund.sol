@@ -137,22 +137,8 @@ contract Fund is ICrowdsaleFund, MultiOwnable {
     }
 
     /**
-     * @dev Decrease tap amount
-     * @param _tap New tap value
+     * @dev Control tab amount. If new amount is over current fund balance, then set current balance as new amount.
      */
-    function decTap(uint256 _tap) external onlyOwner {
-        require(state == FundState.TeamWithdraw);
-        require(_tap < tap);
-        tap = _tap;
-    }
-
-    function getCurrentTapAmount() public constant returns(uint256) {
-        if(state != FundState.TeamWithdraw) {
-            return 0;
-        }
-        return calcTapAmount();
-    }
-
     function calcTapAmount() internal view returns(uint256) {
         uint256 amount = SafeMath.mul(SafeMath.sub(now, lastWithdrawTime), tap);
         if(this.balance < amount) {
@@ -170,53 +156,5 @@ contract Fund is ICrowdsaleFund, MultiOwnable {
         lastWithdrawTime = now;
         teamWallet.transfer(amount);
         Withdraw(amount, now);
-    }
-
-    /**
-     * @dev Withdraw overhead buffer amount
-     */
-    function withdrawOverheadBuffer() public onlyOwner {
-        require(state == FundState.TeamWithdraw);
-        require(overheadBufferAmount > 0);
-
-        uint256 amount = overheadBufferAmount;
-        overheadBufferAmount = 0;
-
-        teamWallet.transfer(amount);
-        BufferWithdraw(amount, now);
-    }
-
-    // Refund
-    /**
-     * @dev Called to start refunding
-     */
-    function enableRefund() internal {
-        require(state == FundState.TeamWithdraw);
-        state = FundState.Refund;
-        token.setAllowTransfers(false);
-        token.destroy(founderTokenWallet, token.balanceOf(founderTokenWallet));
-        token.destroy(researchTokenWallet, token.balanceOf(researchTokenWallet));
-        token.destroy(bizDevelopTokenWallet, token.balanceOf(bizDevelopTokenWallet));
-        token.destroy(markettingTokenWallet, token.balanceOf(markettingTokenWallet));
-        token.destroy(airdropTokenWallet, token.balanceOf(airdropTokenWallet));
-        RefundEnabled(msg.sender);
-    }
-
-    /**
-    * @dev Function is called by contributor to refund
-    * Buy user tokens for refundTokenPrice and destroy them
-    */
-    function refundTokenHolder() public {
-        require(state == FundState.Refund);
-
-        uint256 tokenBalance = token.balanceOf(msg.sender);
-        require(tokenBalance > 0);
-        uint256 refundAmount = SafeMath.div(SafeMath.mul(tokenBalance, this.balance), token.totalSupply());
-        require(refundAmount > 0);
-
-        token.destroy(msg.sender, tokenBalance);
-        msg.sender.transfer(refundAmount);
-
-        RefundHolder(msg.sender, refundAmount, tokenBalance, now);
     }
 }

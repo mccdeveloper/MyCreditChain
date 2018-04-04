@@ -3,15 +3,15 @@ pragma solidity ^0.4.18;
 import './fund/Fund.sol';
 
 /**
- * @title MCCVotingFund
- * @dev Fund controlled by users and oracles voting
+ * @title MCCFund
+ * @dev manage MCC CrowdSale Fund
  */
 contract MCCFund is Fund {
 
     
 
     /**
-     * @dev MCCVotingFund constructor
+     * @dev MCCFund constructor
      * params - see Fund constructor
      */
     function MCCFund(
@@ -26,10 +26,6 @@ contract MCCFund is Fund {
     Fund(_teamWallet, _founderTokenWallet, _researchTokenWallet, _bizDevelopTokenWallet, _markettingTokenWallet, _airdropTokenWallet, _owners)
     {
 
-    }
-
-    function forceRefund() public onlyOwner {
-        enableRefund();
     }
 
    /**

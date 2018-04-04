@@ -6,27 +6,28 @@ import "./fund/ICrowdsaleFund.sol";
 import "./common/IEventReturn.sol";
 import "./MCCToken.sol";
 
-
-
 contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
 
     uint256 public constant TOKEN_SALES_MAX = 420000000000000000000000000;
 
-    uint256 public constant PRESALES_OPEN_TIME = 1522508400; //Sun Apr 01 00:00:00 KST 2018
-    uint256 public constant PRESALES_CLOSE_TIME = 1523113199; //Sat Apr 07 23:59:59 KST 2018
-    uint256 public constant MAINSALES_OPEN_TIME = 1523458800; //Thu Apr 12 00:00:00 KST 2018
-    uint256 public constant MAINSALES_CLOSE_TIME = 1525100399; //Mon Apr 30 23:59:59 KST 2018
+    uint256 public constant PRESALES_OPEN_TIME = 1525104000; //Tue May 01 00:00:00 SGT 2018
+    uint256 public constant PRESALES_CLOSE_TIME = 1525708799; //Mon May 07 23:59:59 SGT 2018
+    uint256 public constant MAINSALES_OPEN_TIME = 1526140800; //Sat May 12 00:00:00 SGT 2018
+    uint256 public constant MAINSALES_CLOSE_TIME = 1527782399; //Thu May 31 23:59:59 SGT 2018
 
     uint256 public constant PRIVATESALES_RATE = 14000;
     uint256 public constant PRESALES_RATE = 11500;
     uint256 public constant MAINSALES_RATE = 10000;
-
+    
     uint256 public constant SOFT_CAP = 5000 ether;
     uint256 public constant HARD_CAP = 40000 ether;
 
     uint256 public constant PRIVATESALES_MIN_ETHER = 10 ether;
     uint256 public constant PRESALES_MIN_ETHER = 0.5 ether;
     uint256 public constant MAINSALES_MIN_ETHER = 0.2 ether;
+    uint256 public constant EVENTSALES_MIN_ETHER = 0.2 ether;
+
+    uint256 public eventRate = 10000;
 
     address internal tokenOwner;
 
@@ -40,7 +41,7 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
         uint256 openTime;
         uint256 closeTime;
         uint256 rate;
-        string description; //comments
+        string description;
     }
 
     CrowdSaleInfo[] inSalesInfoList;
@@ -124,6 +125,9 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
         _;
     }
 
+    /**
+    * @dev Reverts if beneficiary is not whitelisted for private sale. Can be used when extending this contract.
+    */
     modifier isPrivateWhitelisted(address _wallet) {
         require(privateWhiteList[_wallet]);
         _;
@@ -147,7 +151,7 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
             closingTime = saleInfo.closeTime;
             rate = saleInfo.rate;
         }
-        fncReturnVAL(uint256(0));
+        fncReturnVAL(SUCCEED);
     }
 
     /**
@@ -161,6 +165,9 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
         return (saleInfo.openTime, saleInfo.closeTime, saleInfo.rate, saleInfo.minEtherCap, saleInfo.description);
     }
 
+    /**
+     * @dev Activate crowdsale by assigining sale duration and rate
+     */
     function startSales(uint _salesTrial) public onlyOwner {
         require(int(_salesTrial) >= salesCurrentTrials);
         
@@ -177,7 +184,7 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
 
         paused = false;
 
-        fncReturnVAL(uint256(0));
+        fncReturnVAL(SUCCEED);
     }
 
     /**
@@ -207,32 +214,31 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
     }
 
     /**
-     *@dev Check if wallet is registered whitelist. 
+     *@dev Check if wallet is registered in whitelist. 
      */
     function isRegisteredWhiteList(address _beneficiary) external view returns (bool) {
         return whiteList[_beneficiary];
     }
 
     /**
-     * @dev Add wallet to whitelist. For contract owner only.
+     * @dev Add wallet to whitelist for private. For contract owner only.
      */
     function addToPrivateWhiteList(address _wallet) public onlyOwner {
         privateWhiteList[_wallet] = true;
     }
    
     /**
-     *@dev Check if wallet is registered private Whitelist. 
+     *@dev Check if wallet is registered in private Whitelist. 
      */
     function isRegisteredPrivateWhiteList(address _wallet) public view onlyOwner returns (bool) {
         return privateWhiteList[_wallet];
     }
    
     /**
-     * @dev buy tokens who registered private wallet list
-     * @param _beneficiary address Account to buyer wallet address.
+     * @dev buy tokens who is registered in private wallet list
+     * @param _beneficiary address to handle private sale
      */
     function buyTokensPrivate(address _beneficiary) external payable isPrivateWhitelisted(msg.sender) {
-        //require(privateWhiteList[msg.sender]);
         require(_beneficiary != address(0));
         require(msg.value >= PRIVATESALES_MIN_ETHER);
 
@@ -241,14 +247,9 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
         // update state
         weiRaised = weiRaised.add(weiAmount);
 
-        //_preValidatePurchase(_beneficiary, weiAmount);
-
         uint256 _tokenAmount = weiAmount.mul(PRIVATESALES_RATE);
 
         require(getTotalTokensSold().add(_tokenAmount) <= TOKEN_SALES_MAX);
-
-        //inPrivilegedBuyerList[_beneficiary] = tokens;
-        //privilegedBuyerList.push(_beneficiary);
 
         token.issue(_beneficiary, _tokenAmount);
         fund.processContribution.value(msg.value)(_beneficiary);
@@ -256,16 +257,51 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
 
         fncReturnVAL(SUCCEED);
     }
+
+    /**
+     * @dev buy tokens who is registered in private wallet list with arbitrary rate for event sale
+     * @param _beneficiary address to handle event sale
+     */
+    function buyTokensEvent(address _beneficiary) external payable isPrivateWhitelisted(msg.sender) {
+        require(_beneficiary != address(0));
+        require(msg.value >= EVENTSALES_MIN_ETHER);
+
+        uint256 weiAmount = msg.value;
+
+        // update state
+        weiRaised = weiRaised.add(weiAmount);
+
+        uint256 _tokenAmount = weiAmount.mul(eventRate);
+
+        require(getTotalTokensSold().add(_tokenAmount) <= TOKEN_SALES_MAX);
+
+        token.issue(_beneficiary, _tokenAmount);
+        fund.processContribution.value(msg.value)(_beneficiary);
+        soldTokensPrivateICO = SafeMath.add(soldTokensPrivateICO, _tokenAmount);
+
+        fncReturnVAL(SUCCEED);
+    }
+
+    function setEventRate(uint256 _rate) public onlyOwner {
+        require(5000 <= _rate && _rate <= 20000);
+        eventRate = _rate;
+    }
+
+    function getEventRate() external view returns (uint256) {
+        return eventRate;
+    }
+
   /**
    * @dev Checks whether the cap has been reached.
-   * @return Whether the cap was reached
+   * @return boolean value determines Whether the cap was reached
    */
     function capReached() public view returns (bool) {
         return weiRaised >= SOFT_CAP;
     }
 
     /**
-     * @dev Validation of an incoming purchase. Use require statemens to revert state when conditions are not met. Use super to concatenate validations.
+     * @dev   Override _preValidatePurchase function.
+     *        Validation of an incoming purchase. Use require statemens to revert state when conditions are not met. Use super to concatenate validations.
      * @param _beneficiary Address performing the token purchase
      * @param _weiAmount Value in wei involved in the purchase
      */
@@ -280,8 +316,8 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
         require(weiRaised.add(_weiAmount) <= HARD_CAP);
     }
 
-        /**
-    * @dev Override _postValidatePurchase function. Not deliver token to beneficiary yet.
+    /**
+    * @dev Override _processPurchase function. Not deliver token to beneficiary yet.
     *               distribution including delivering token to beneficiary will be handled on finalization
     */
     function _processPurchase(address _beneficiary, uint256 _tokenAmount) internal {
@@ -304,19 +340,15 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
     }
 
     /**
-    * @dev Override _postValidatePurchase function. Add msg.sender to buyerList for refund
-    */
-    function _postValidatePurchase(address _beneficiary, uint256 _weiAmount) internal {
-        //addToBuyerList(_beneficiary, _getTokenAmount(_weiAmount));
-    }
-
-    /**
      * @dev return total number of tokens sold
     */
     function getTotalTokensSold() internal view returns (uint256) {
         return soldTokensPrivateICO.add(soldTokensPreICO).add(soldTokensMainICO);
     }
 
+    /**
+     * @dev return the number of remained tokens
+    */
     function getRemainTokensToSell() external view returns (uint256) {
         return TOKEN_SALES_MAX.sub(getTotalTokensSold());
     }
@@ -325,7 +357,6 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
     * @dev Override finalization function. Add distributing token part
     */
     function finalization() internal {
-        //super.finalization();
         if (capReached()) {
             fund.onCrowdsaleEnd();
             token.setAllowTransfers(true);
@@ -345,5 +376,4 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
         }
         token.finishIssuance();
     }
-
 }

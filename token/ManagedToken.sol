@@ -65,6 +65,9 @@ contract ManagedToken is StandardToken, MultiOwnable {
         }
     }
 
+    /**
+     * @dev Override transfer function. Add event listener condition
+     */
     function transfer(address _to, uint256 _value) public transfersAllowed returns (bool) {
         bool success = super.transfer(_to, _value);
         if(hasListener() && success) {
@@ -73,6 +76,9 @@ contract ManagedToken is StandardToken, MultiOwnable {
         return success;
     }
 
+    /**
+     * @dev Override transferFrom function. Add event listener condition
+     */
     function transferFrom(address _from, address _to, uint256 _value) public transfersAllowed returns (bool) {
         bool success = super.transferFrom(_from, _to, _value);
         if(hasListener() && success) {

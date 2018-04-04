@@ -3,7 +3,6 @@ pragma solidity ^0.4.18;
 import "./token/TransferLimitedToken.sol";
 
 contract MCCToken is TransferLimitedToken {
-
     // =================================================================================================================
     //                                         Members
     // =================================================================================================================
@@ -18,11 +17,10 @@ contract MCCToken is TransferLimitedToken {
     // =================================================================================================================
 
     /**
-     * MCC Token
-     * To change to a token for DAICO, you must set up an ITokenEvenListener
-     * to change the voting weight setting through the listener for the
-     * transfer of the token.
-     *
+     * @dev MCC Token
+     *      To change to a token for DAICO, you must set up an ITokenEvenListener
+     *      to change the voting weight setting through the listener for the
+     *      transfer of the token.
      */
     function MCCToken(address _listener, address[] _owners, address _manager) public
         TransferLimitedToken(_listener, _owners, _manager)
@@ -32,9 +30,9 @@ contract MCCToken is TransferLimitedToken {
     }
 
     /**
-     * Override ManagedToken.issue. MCCToken can not issue but it need to
-     * distribute tokens to contributors while crowding sales. So. we change this
-     * @dev Issue tokens to specified wallet
+     * @dev Override ManagedToken.issue. MCCToken can not issue but it need to
+     *      distribute tokens to contributors while crowding sales. So. we changed this
+     *       Issue tokens to specified wallet
      * @param _to Wallet address
      * @param _value Amount of tokens
      */
@@ -47,7 +45,7 @@ contract MCCToken is TransferLimitedToken {
 
     /**
      * @dev Destroy tokens on specified address (Called by owner or token holder)
-     * @dev Fund contract address must be in the list of owners to recall token during refund
+     *      Fund contract address must be in the list of owners to recall token during refund
      * @param _from Wallet address
      * @param _value Amount of tokens to destroy
      */
@@ -59,5 +57,4 @@ contract MCCToken is TransferLimitedToken {
         balances[manager] = SafeMath.add(balances[manager], _value);
         Destroy(_from, _value);
     }
-
 }
