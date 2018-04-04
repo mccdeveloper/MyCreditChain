@@ -64,7 +64,7 @@ MyCreditChain(MCC) is a blockchain platform of personal credit information. This
         7. finalization() internal - make token transfer available and distribute MCC token
 
 # Future plans
-![Alt text](https://www.mycreditchain.org/images/mcc-eco.png "Optional title") 
+![Alt text](https://www.mycreditchain.org/images/mcc-eco.png "MCC ECO SYSTEM") 
 
 The services provided by MyCreditChain can be summarized as follows.
 
