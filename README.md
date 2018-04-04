@@ -2,7 +2,7 @@
 
 MyCreditChain(MCC) is a blockchain platform of personal credit information. This project aims to bring the ownership of credit information back to individuals. MCC revolutionizes the all process of how personal credit information is gathered and used. Moreover, MCC can further revolutionize our interaction with one another in one global network. 
 
-# Smart contract
+# Smart Contract
 
 - MCCFund
 
@@ -18,7 +18,7 @@ MyCreditChain(MCC) is a blockchain platform of personal credit information. This
     - MCCToken contract also applies "MultiOwnable" to prevent that fund is abused by a specified person
     - MCCToken defines the token standard will be used for MCC service
 
-    - Public variables:
+    - Public Variables:
 
         1. name     - token name   (ERC20 option)
         2. symbol   - token symbol (ERC20 option)
@@ -36,7 +36,7 @@ MyCreditChain(MCC) is a blockchain platform of personal credit information. This
     - MCCCrowdsale only allow the investors who is registered in whitelist to join the sales in sale duration
     - Finalize functionality has two side. MCC token distribution will start in the case the sales reaches soft cap or else refund will start
 
-    - Public constants:
+    - Public Constants:
 
         1.  TOKEN_SALES_MAX        - token total supply amount
         2.  PRESALES_OPEN_TIME     - Tue May 01 00:00:00 SGT 2018
@@ -63,8 +63,8 @@ MyCreditChain(MCC) is a blockchain platform of personal credit information. This
         6. buyTokens(address _beneficiary) public payable - low level token purchase
         7. finalization() internal - make token transfer available and distribute MCC token
 
-# Future plans
-![Alt text](https://www.mycreditchain.org/images/mcc-eco.png "MCC ECO SYSTEM") 
+# Future Plans
+![Alt text](https://www.mycreditchain.org/images/mcc-eco.png "MCC ECO SYSTEM")
 
 The services provided by MyCreditChain can be summarized as follows.
 
