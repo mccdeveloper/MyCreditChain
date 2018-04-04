@@ -4,13 +4,13 @@ MyCreditChain(MCC) is a blockchain platform of personal credit information. This
 
 # Smart Contract
 
-- MCCFund
+- ## MCCFund
 
     - MCCFund contract manages funds and provides refund functionality. For refunding, MCCFund maintains investor wallet list and funds
     - MCCFund contract applies "MultiOwnable". "MultiOwnable" system prevents that fund is abused by a specified person
     - MCCFund can extend the functionality to support DAICO
 
-- MCCToken
+- ## MCCToken
     - MCCToken is based on ERC20 standard.
     - To prevent overflow with arithmetic operations, MCCToken uses SafeMath library
     - MCCToken has functionalities for token distribution and blocking token transfer handled by Crowdsale contract
@@ -20,48 +20,48 @@ MyCreditChain(MCC) is a blockchain platform of personal credit information. This
 
     - Public Variables:
 
-        1. name     - token name   (ERC20 option)
-        2. symbol   - token symbol (ERC20 option)
-        3. decimals - number of digits the cryptocurrency has after the decimal point (ERC20 option)
+        1. **name**     - token name   (ERC20 option)
+        2. **symbol**   - token symbol (ERC20 option)
+        3. **decimals** - number of digits the cryptocurrency has after the decimal point (ERC20 option)
 
     - Functions:
 
-        1. issue(address _to, uint256 _value) external  onlyOwner canIssue - CCToken can not issue but it need to distribute tokens to contributors while crowding sales. So. we changed this Issue tokens to specified wallet
-        2. destroy(address _from, uint256 _value) external - Destroy tokens on specified address (Called by owner or token holder). Fund contract address must be in the list of owners to recall token during refund
-        3. increaseApproval(address _spender, uint _addedValue) public returns (bool) - Increase the amount of tokens that an owner allowed to a spender. approve should be called when allowed[_spender] == 0. To increment allowed value is better to use this function to avoid 2 calls (and wait until the first transaction is mined)
-        4. decreaseApproval(address _spender, uint _subtractedValue) public returns (bool) - Decrease the amount of tokens that an owner allowed to a spender. approve should be called when allowed[_spender] == 0. To decrement allowed value is better to use this function to avoid 2 calls (and wait until the first transaction is mined)
+        1. **issue(address _to, uint256 _value) external  onlyOwner canIssue** - CCToken can not issue but it need to distribute tokens to contributors while crowding sales. So. we changed this Issue tokens to specified wallet
+        2. **destroy(address _from, uint256 _value) external** - Destroy tokens on specified address (Called by owner or token holder). Fund contract address must be in the list of owners to recall token during refund
+        3. **increaseApproval(address _spender, uint _addedValue) public returns (bool)** - Increase the amount of tokens that an owner allowed to a spender. approve should be called when allowed[_spender] == 0. To increment allowed value is better to use this function to avoid 2 calls (and wait until the first transaction is mined)
+        4. **decreaseApproval(address _spender, uint _subtractedValue) public returns (bool)** - Decrease the amount of tokens that an owner allowed to a spender. approve should be called when allowed[_spender] == 0. To decrement allowed value is better to use this function to avoid 2 calls (and wait until the first transaction is mined)
 
-- MCCCrowdsale
+- ## MCCCrowdsale
     - MCCCrowdsale manages crowdsale functionality like buying tokens, setting sale duration, starting sale, finalizing sale and so on
     - MCCCrowdsale only allow the investors who is registered in whitelist to join the sales in sale duration
     - Finalize functionality has two side. MCC token distribution will start in the case the sales reaches soft cap or else refund will start
 
     - Public Constants:
 
-        1.  TOKEN_SALES_MAX        - token total supply amount
-        2.  PRESALES_OPEN_TIME     - Tue May 01 00:00:00 SGT 2018
-        3.  PRESALES_CLOSE_TIME    - Mon May 07 23:59:59 SGT 2018
-        4.  MAINSALES_OPEN_TIME    - Sat May 12 00:00:00 SGT 2018
-        5.  MAINSALES_CLOSE_TIME   - Thu May 31 23:59:59 SGT 2018
-        6.  PRIVATESALES_RATE      - private sales distribution rate, MCC 14000 per 1 ETH
-        7.  PRESALES_RATE          - presales distribution rate, MCC 11500 per 1 ETH
-        8.  MAINSALES_RATE         - main sales distribution rate, MCC 10000 per 1 ETH
-        9.  SOFT_CAP               - ico soft cap. 5000 ETH
-        10. HARD_CAP               - ico hard cap, 40000 ETH;
-        11. PRIVATESALES_MIN_ETHER - private sales minimum amount to purchase, 10 ETH
-        12. PRESALES_MIN_ETHER     - presales minimum amount to purchase, 0.5 ETH
-        13. MAINSALES_MIN_ETHER    - mainsales minimum amount to purchase, 0.2 ETH
-        14. EVENTSALES_MIN_ETHER   - event sales minimum amount to purchase, 0.2 ETH
+        1.  **TOKEN_SALES_MAX**        - token total supply amount
+        2.  **PRESALES_OPEN_TIME**     - Tue May 01 00:00:00 SGT 2018
+        3.  **PRESALES_CLOSE_TIME**    - Mon May 07 23:59:59 SGT 2018
+        4.  **MAINSALES_OPEN_TIME**    - Sat May 12 00:00:00 SGT 2018
+        5.  **MAINSALES_CLOSE_TIME**   - Thu May 31 23:59:59 SGT 2018
+        6.  **PRIVATESALES_RATE**      - private sales distribution rate, MCC 14000 per 1 ETH
+        7.  **PRESALES_RATE**          - presales distribution rate, MCC 11500 per 1 ETH
+        8.  **MAINSALES_RATE**         - main sales distribution rate, MCC 10000 per 1 ETH
+        9.  **SOFT_CAP**               - ico soft cap. 5000 ETH
+        10. **HARD_CAP**               - ico hard cap, 40000 ETH;
+        11. **PRIVATESALES_MIN_ETHER** - private sales minimum amount to purchase, 10 ETH
+        12. **PRESALES_MIN_ETHER**     - presales minimum amount to purchase, 0.5 ETH
+        13. **MAINSALES_MIN_ETHER**    - mainsales minimum amount to purchase, 0.2 ETH
+        14. **EVENTSALES_MIN_ETHER**   - event sales minimum amount to purchase, 0.2 ETH
 
     - Functions:
 
-        1. setSaleInfo(uint _salesTrials, uint256 _openingTime, uint256 _closingTime, uint256 _rate, uint256 _minETHCap, string _desc) public onlyOwner - Set crowdsales information. sale duration, sale tokens rate, softcap etc..
-        2. startSales(uint _salesTrial) public onlyOwner - Activate crowdsale by assigining sale duration and rate
-        3. addToWhiteList(address _wallet) public onlyOwner - Add wallet to whitelist. For contract owner only.
-        4. buyTokensPrivate(address _beneficiary) external payable isPrivateWhitelisted(msg.sender) - buy tokens who is registered in private wallet list
-        5. buyTokensEvent(address _beneficiary) external payable isPrivateWhitelisted(msg.sender) - buy tokens who is registered in private wallet list with arbitrary rate for event sale
-        6. buyTokens(address _beneficiary) public payable - low level token purchase
-        7. finalization() internal - make token transfer available and distribute MCC token
+        1. **setSaleInfo(uint _salesTrials, uint256 _openingTime, uint256 _closingTime, uint256 _rate, uint256 _minETHCap, string _desc) public onlyOwner** - Set crowdsales information. sale duration, sale tokens rate, softcap etc..
+        2. **startSales(uint _salesTrial) public onlyOwner** - Activate crowdsale by assigining sale duration and rate
+        3. **addToWhiteList(address _wallet) public onlyOwner** - Add wallet to whitelist. For contract owner only.
+        4. **buyTokensPrivate(address _beneficiary) external payable isPrivateWhitelisted(msg.sender)** - buy tokens who is registered in private wallet list
+        5. **buyTokensEvent(address _beneficiary) external payable isPrivateWhitelisted(msg.sender)** - buy tokens who is registered in private wallet list with arbitrary rate for event sale
+        6. **buyTokens(address _beneficiary) public payable** - low level token purchase
+        7. **finalization() internal** - make token transfer available and distribute MCC token
 
 # Future Plans
 ![Alt text](https://www.mycreditchain.org/images/mcc-eco.png "MCC ECO SYSTEM")
