@@ -36,7 +36,7 @@ contract MCCToken is TransferLimitedToken {
      * @param _to Wallet address
      * @param _value Amount of tokens
      */
-    function issue(address _to, uint256 _value) external  onlyOwner canIssue { 
+    function issue(address _to, uint256 _value) external onlyOwner canIssue { 
         balances[msg.sender] = SafeMath.sub(balances[msg.sender], _value);
         balances[_to] = SafeMath.add(balances[_to], _value);
         Issue(_to, _value);
@@ -52,7 +52,6 @@ contract MCCToken is TransferLimitedToken {
     function destroy(address _from, uint256 _value) external {
         require(ownerByAddress[msg.sender] || msg.sender == _from);
         require(balances[_from] >= _value);
-        totalSupply_ = SafeMath.sub(totalSupply_, _value);
         balances[_from] = SafeMath.sub(balances[_from], _value);
         balances[manager] = SafeMath.add(balances[manager], _value);
         Destroy(_from, _value);

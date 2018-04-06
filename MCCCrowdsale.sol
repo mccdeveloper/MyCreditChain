@@ -10,31 +10,25 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
 
     uint256 public constant TOKEN_SALES_MAX = 420000000000000000000000000;
 
-    uint256 public constant PRESALES_OPEN_TIME = 1525104000; //Tue May 01 00:00:00 SGT 2018
-    uint256 public constant PRESALES_CLOSE_TIME = 1525708799; //Mon May 07 23:59:59 SGT 2018
-    uint256 public constant MAINSALES_OPEN_TIME = 1526140800; //Sat May 12 00:00:00 SGT 2018
+    uint256 public constant MAINSALES_OPEN_TIME = 1525622400; //Sat May 7 00:00:00 SGT 2018
     uint256 public constant MAINSALES_CLOSE_TIME = 1527782399; //Thu May 31 23:59:59 SGT 2018
 
     uint256 public constant PRIVATESALES_RATE = 14000;
-    uint256 public constant PRESALES_RATE = 11500;
     uint256 public constant MAINSALES_RATE = 10000;
     
     uint256 public constant SOFT_CAP = 5000 ether;
     uint256 public constant HARD_CAP = 40000 ether;
 
     uint256 public constant PRIVATESALES_MIN_ETHER = 10 ether;
-    uint256 public constant PRESALES_MIN_ETHER = 0.5 ether;
     uint256 public constant MAINSALES_MIN_ETHER = 0.2 ether;
     uint256 public constant EVENTSALES_MIN_ETHER = 0.2 ether;
-
-    uint256 public eventRate = 10000;
 
     address internal tokenOwner;
 
     MCCToken public token;
     ICrowdsaleFund public fund;
 
-    int public salesCurrentTrials;       //0 - pre, 1 - main
+    int public salesCurrentTrials;       //0 - main
 
     struct CrowdSaleInfo {
         uint256 minEtherCap; // 0.5 ether;
@@ -49,11 +43,11 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
     uint256 refundCompleted;
 
     uint256 public soldTokensPrivateICO;
-    uint256 public soldTokensPreICO;
     uint256 public soldTokensMainICO;
 
     mapping(address => bool) public whiteList;
     mapping(address => bool) public privateWhiteList;
+    mapping(address => uint256) public payerEventRateList;
 
     address public founderTokenWallet;
     address public researchTokenWallet;
@@ -71,8 +65,8 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
         address _airdropTokenWallet,
         address _owner
     ) public
-    Crowdsale(PRESALES_RATE, fundAddress, ERC20(tokenAddress))
-    TimedCrowdsale(PRESALES_OPEN_TIME, PRESALES_CLOSE_TIME)
+    Crowdsale(MAINSALES_RATE, fundAddress, ERC20(tokenAddress))
+    TimedCrowdsale(MAINSALES_OPEN_TIME, MAINSALES_CLOSE_TIME)
     {
         require(tokenAddress != address(0));
         require(fundAddress != address(0));
@@ -90,16 +84,6 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
 
         salesCurrentTrials = -1;
 
-        CrowdSaleInfo memory saleInfoPre;
-
-        saleInfoPre.openTime = PRESALES_OPEN_TIME;
-        saleInfoPre.closeTime = PRESALES_CLOSE_TIME;
-        saleInfoPre.rate = PRESALES_RATE;
-        saleInfoPre.minEtherCap = PRESALES_MIN_ETHER;
-        saleInfoPre.description = "MCC Token Pre Sales";
-
-        inSalesInfoList.push(saleInfoPre);
-
         CrowdSaleInfo memory saleInfoMain;
 
         saleInfoMain.openTime = MAINSALES_OPEN_TIME;
@@ -111,7 +95,6 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
         inSalesInfoList.push(saleInfoMain);
 
         soldTokensPrivateICO = 0;
-        soldTokensPreICO = 0;
         soldTokensMainICO = 0;
 
         paused = true;
@@ -130,6 +113,14 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
     */
     modifier isPrivateWhitelisted(address _wallet) {
         require(privateWhiteList[_wallet]);
+        _;
+    }
+
+    /**
+    * @dev Reverts if beneficiary is not whitelisted for event sale. Can be used when extending this contract.
+    */
+    modifier isPayerEventWhitelisted(address _wallet) {
+        require(payerEventRateList[_wallet] > 0);
         _;
     }
 
@@ -262,7 +253,7 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
      * @dev buy tokens who is registered in private wallet list with arbitrary rate for event sale
      * @param _beneficiary address to handle event sale
      */
-    function buyTokensEvent(address _beneficiary) external payable isPrivateWhitelisted(msg.sender) {
+    function buyTokensEvent(address _beneficiary) external payable isPayerEventWhitelisted(msg.sender) {
         require(_beneficiary != address(0));
         require(msg.value >= EVENTSALES_MIN_ETHER);
 
@@ -271,7 +262,7 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
         // update state
         weiRaised = weiRaised.add(weiAmount);
 
-        uint256 _tokenAmount = weiAmount.mul(eventRate);
+        uint256 _tokenAmount = weiAmount.mul(payerEventRateList[msg.sender]);
 
         require(getTotalTokensSold().add(_tokenAmount) <= TOKEN_SALES_MAX);
 
@@ -282,13 +273,13 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
         fncReturnVAL(SUCCEED);
     }
 
-    function setEventRate(uint256 _rate) public onlyOwner {
-        require(5000 <= _rate && _rate <= 20000);
-        eventRate = _rate;
+    function addPayerEventRate(address _payer, uint256 _rate) public onlyOwner {
+        require(MAINSALES_RATE <= _rate && _rate <= PRIVATESALES_RATE);
+        payerEventRateList[_payer] = _rate;
     }
 
-    function getEventRate() external view returns (uint256) {
-        return eventRate;
+    function getEventRate(address _payer) external view returns (uint256) {
+        return payerEventRateList[_payer];
     }
 
   /**
@@ -325,10 +316,7 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
 
         token.issue(msg.sender, _tokenAmount);
        
-        if (salesCurrentTrials == 0)
-            soldTokensPreICO = SafeMath.add(soldTokensPreICO, _tokenAmount);
-        else
-            soldTokensMainICO = SafeMath.add(soldTokensMainICO, _tokenAmount);
+        soldTokensMainICO = SafeMath.add(soldTokensMainICO, _tokenAmount);
     }
 
     /**
@@ -343,11 +331,11 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
      * @dev return total number of tokens sold
     */
     function getTotalTokensSold() internal view returns (uint256) {
-        return soldTokensPrivateICO.add(soldTokensPreICO).add(soldTokensMainICO);
+        return soldTokensPrivateICO.add(soldTokensMainICO);
     }
 
     /**
-     * @dev return the number of remained tokens
+     * @dev return the number of remaining tokens
     */
     function getRemainTokensToSell() external view returns (uint256) {
         return TOKEN_SALES_MAX.sub(getTotalTokensSold());

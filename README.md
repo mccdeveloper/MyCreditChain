@@ -8,7 +8,6 @@ MyCreditChain(MCC) is a blockchain platform of personal credit information. This
 
     - MCCFund contract manages funds and provides refund functionality. For refunding, MCCFund maintains investor wallet list and funds
     - MCCFund contract applies "MultiOwnable". "MultiOwnable" system prevents that fund is abused by a specified person
-    - MCCFund can extend the functionality to support DAICO
 
 - ## MCCToken
     - MCCToken is based on ERC20 standard.
@@ -39,19 +38,15 @@ MyCreditChain(MCC) is a blockchain platform of personal credit information. This
     - Public Constants:
 
         1.  **TOKEN_SALES_MAX**        - token total supply amount
-        2.  **PRESALES_OPEN_TIME**     - Tue May 01 00:00:00 SGT 2018
-        3.  **PRESALES_CLOSE_TIME**    - Mon May 07 23:59:59 SGT 2018
-        4.  **MAINSALES_OPEN_TIME**    - Sat May 12 00:00:00 SGT 2018
-        5.  **MAINSALES_CLOSE_TIME**   - Thu May 31 23:59:59 SGT 2018
-        6.  **PRIVATESALES_RATE**      - private sales distribution rate, MCC 14000 per 1 ETH
-        7.  **PRESALES_RATE**          - presales distribution rate, MCC 11500 per 1 ETH
-        8.  **MAINSALES_RATE**         - main sales distribution rate, MCC 10000 per 1 ETH
-        9.  **SOFT_CAP**               - ico soft cap. 5000 ETH
-        10. **HARD_CAP**               - ico hard cap, 40000 ETH;
-        11. **PRIVATESALES_MIN_ETHER** - private sales minimum amount to purchase, 10 ETH
-        12. **PRESALES_MIN_ETHER**     - presales minimum amount to purchase, 0.5 ETH
-        13. **MAINSALES_MIN_ETHER**    - mainsales minimum amount to purchase, 0.2 ETH
-        14. **EVENTSALES_MIN_ETHER**   - event sales minimum amount to purchase, 0.2 ETH
+        2.  **MAINSALES_OPEN_TIME**    - Sat May 12 00:00:00 SGT 2018
+        3.  **MAINSALES_CLOSE_TIME**   - Thu May 31 23:59:59 SGT 2018
+        4.  **PRIVATESALES_RATE**      - private sales distribution rate, MCC 14000 per 1 ETH
+        5.  **MAINSALES_RATE**         - main sales distribution rate, MCC 10000 per 1 ETH
+        6.  **SOFT_CAP**               - ico soft cap. 5000 ETH
+        7. **HARD_CAP**               - ico hard cap, 40000 ETH;
+        8. **PRIVATESALES_MIN_ETHER** - private sales minimum amount to purchase, 10 ETH
+        9. **MAINSALES_MIN_ETHER**    - mainsales minimum amount to purchase, 0.2 ETH
+        10. **EVENTSALES_MIN_ETHER**   - event sales minimum amount to purchase, 0.2 ETH
 
     - Functions:
 
