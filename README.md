@@ -38,7 +38,7 @@ MyCreditChain(MCC) is a blockchain platform of personal credit information. This
     - Public Constants:
 
         1.  **TOKEN_SALES_MAX**        - token total supply amount
-        2.  **MAINSALES_OPEN_TIME**    - Sat May 12 00:00:00 SGT 2018
+        2.  **MAINSALES_OPEN_TIME**    - Sat May 7 00:00:00 SGT 2018
         3.  **MAINSALES_CLOSE_TIME**   - Thu May 31 23:59:59 SGT 2018
         4.  **PRIVATESALES_RATE**      - private sales distribution rate, MCC 14000 per 1 ETH
         5.  **MAINSALES_RATE**         - main sales distribution rate, MCC 10000 per 1 ETH
