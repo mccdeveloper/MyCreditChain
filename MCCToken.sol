@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.21;
 
 import "./token/TransferLimitedToken.sol";
 
@@ -6,7 +6,7 @@ contract MCCToken is TransferLimitedToken {
     // =================================================================================================================
     //                                         Members
     // =================================================================================================================
-    string public name = "My Credit Chain";
+    string public name = "MyCreditChain";
 
     string public symbol = "MCC";
 
@@ -25,7 +25,7 @@ contract MCCToken is TransferLimitedToken {
     function MCCToken(address _listener, address[] _owners, address _manager) public
         TransferLimitedToken(_listener, _owners, _manager)
     {
-        totalSupply_ = 1000000000 * (uint256(10) ** decimals);
+        totalSupply_ = uint256(1000000000).mul(uint256(10) ** decimals); // token total supply : 1000000000
         balances[msg.sender] = totalSupply_;
     }
 
@@ -36,11 +36,11 @@ contract MCCToken is TransferLimitedToken {
      * @param _to Wallet address
      * @param _value Amount of tokens
      */
-    function issue(address _to, uint256 _value) external onlyOwner canIssue { 
+    function issue(address _to, uint256 _value) external onlyOwner canIssue {
         balances[msg.sender] = SafeMath.sub(balances[msg.sender], _value);
         balances[_to] = SafeMath.add(balances[_to], _value);
-        Issue(_to, _value);
-        Transfer(msg.sender, _to, _value);
+        emit Issue(_to, _value);
+        emit Transfer(msg.sender, _to, _value);
     }
 
     /**
@@ -54,6 +54,6 @@ contract MCCToken is TransferLimitedToken {
         require(balances[_from] >= _value);
         balances[_from] = SafeMath.sub(balances[_from], _value);
         balances[manager] = SafeMath.add(balances[manager], _value);
-        Destroy(_from, _value);
+        emit Destroy(_from, _value);
     }
 }

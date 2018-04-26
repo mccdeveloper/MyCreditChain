@@ -38,15 +38,13 @@ MyCreditChain(MCC) is a blockchain platform of personal credit information. This
     - Public Constants:
 
         1.  **TOKEN_SALES_MAX**        - token total supply amount
-        2.  **MAINSALES_OPEN_TIME**    - Sat May 7 00:00:00 SGT 2018
+        2.  **MAINSALES_OPEN_TIME**    - Mon May 7 00:00:00 SGT 2018
         3.  **MAINSALES_CLOSE_TIME**   - Thu May 31 23:59:59 SGT 2018
-        4.  **PRIVATESALES_RATE**      - private sales distribution rate, MCC 14000 per 1 ETH
+        4.  **MAXIMUM_SALE_RATE**      - the limitation oftoken distribution rate, MCC 14000 per 1 ETH
         5.  **MAINSALES_RATE**         - main sales distribution rate, MCC 10000 per 1 ETH
         6.  **SOFT_CAP**               - ico soft cap. 5000 ETH
-        7. **HARD_CAP**               - ico hard cap, 40000 ETH;
-        8. **PRIVATESALES_MIN_ETHER** - private sales minimum amount to purchase, 10 ETH
-        9. **MAINSALES_MIN_ETHER**    - mainsales minimum amount to purchase, 0.2 ETH
-        10. **EVENTSALES_MIN_ETHER**   - event sales minimum amount to purchase, 0.2 ETH
+        7. **HARD_CAP**                - ico hard cap, 40000 ETH;
+        8. **MAINSALES_MIN_ETHER**     - mainsales minimum amount to purchase, 0.2 ETH
 
     - Functions:
 

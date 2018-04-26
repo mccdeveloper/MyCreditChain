@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.21;
 
 /**
  * @title ICrowdsaleFund
@@ -13,13 +13,10 @@ interface ICrowdsaleFund {
     /**
     * @dev Function is called on the end of successful crowdsale
     */
-    function onCrowdsaleEnd() external;
+    function onCrowdsaleEnd() public;
     /**
     * @dev Function is called if crowdsale failed to reach soft cap
     */
     function enableCrowdsaleRefund() external;
-    /**
-    * @dev Function is called by contributor to refund payments if crowdsale failed to reach soft cap
-    */
-    function refundCrowdsaleContributor() external;
+
 }

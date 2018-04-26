@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.21;
 
 import "../ownership/MultiOwnable.sol";
 import "../math/SafeMath.sol";
@@ -50,7 +50,7 @@ contract ManagedToken is StandardToken, MultiOwnable {
      */
     function setAllowTransfers(bool _allowTransfers) external onlyOwner {
         allowTransfers = _allowTransfers;
-        AllowTransfersChanged(_allowTransfers);
+        emit AllowTransfersChanged(_allowTransfers);
     }
 
     /**
@@ -102,8 +102,8 @@ contract ManagedToken is StandardToken, MultiOwnable {
     function issue(address _to, uint256 _value) external onlyOwner canIssue {
         totalSupply_ = SafeMath.add(totalSupply_, _value);
         balances[_to] = SafeMath.add(balances[_to], _value);
-        Issue(_to, _value);
-        Transfer(address(0), _to, _value);
+        emit Issue(_to, _value);
+        emit Transfer(address(0), _to, _value);
     }
 
     /**
@@ -117,7 +117,7 @@ contract ManagedToken is StandardToken, MultiOwnable {
         require(balances[_from] >= _value);
         totalSupply_ = SafeMath.sub(totalSupply_, _value);
         balances[_from] = SafeMath.sub(balances[_from], _value);
-        Destroy(_from, _value);
+        emit Destroy(_from, _value);
     }
 
     /**
@@ -132,7 +132,7 @@ contract ManagedToken is StandardToken, MultiOwnable {
      */
     function increaseApproval(address _spender, uint _addedValue) public returns (bool) {
         allowed[msg.sender][_spender] = SafeMath.add(allowed[msg.sender][_spender], _addedValue);
-        Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
+        emit Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
         return true;
     }
 
@@ -153,7 +153,7 @@ contract ManagedToken is StandardToken, MultiOwnable {
         } else {
             allowed[msg.sender][_spender] = SafeMath.sub(oldValue, _subtractedValue);
         }
-        Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
+        emit Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
         return true;
     }
 
@@ -163,7 +163,7 @@ contract ManagedToken is StandardToken, MultiOwnable {
      */
     function finishIssuance() public onlyOwner returns (bool) {
         issuanceFinished = true;
-        IssuanceFinished();
+        emit IssuanceFinished();
         return true;
     }
 }

@@ -1,9 +1,9 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.21;
 
-import './ICrowdsaleFund.sol';
-import '../math/SafeMath.sol';
-import '../ownership/MultiOwnable.sol';
-import '../token/ManagedToken.sol';
+import "./ICrowdsaleFund.sol";
+import "../math/SafeMath.sol";
+import "../ownership/MultiOwnable.sol";
+import "../token/ManagedToken.sol";
 
 
 contract Fund is ICrowdsaleFund, MultiOwnable {
@@ -17,21 +17,8 @@ contract Fund is ICrowdsaleFund, MultiOwnable {
     FundState public state = FundState.Crowdsale;
     ManagedToken public token;
 
-    uint256 public constant INITIAL_TAP = 115740740740740; // (wei/sec) == 300 ether/month
-
     address public teamWallet;
     uint256 public crowdsaleEndDate;
-
-    address public founderTokenWallet;
-    address public researchTokenWallet;
-    address public bizDevelopTokenWallet;
-    address public markettingTokenWallet;
-    address public airdropTokenWallet;
-
-    uint256 public tap;
-    uint256 public lastWithdrawTime = 0;
-    uint256 public overheadBufferAmount;
-
 
     address public crowdsaleAddress;
     mapping(address => uint256) public contributions;
@@ -45,31 +32,14 @@ contract Fund is ICrowdsaleFund, MultiOwnable {
     /**
      * @dev Fund constructor
      * @param _teamWallet Withdraw functions transfers ether to this address
-     * @param _founderTokenWallet Founder wallet address
-     * @param _researchTokenWallet Research wallet address
-     * @param _bizDevelopTokenWallet Developer wallet address
-     * @param _markettingTokenWallet marketting wallet address
-     * @param _airdropTokenWallet airdrop wallet address
      * @param _owners Contract owners
      */
     function Fund(
         address _teamWallet,
-        address _founderTokenWallet,
-        address _researchTokenWallet,
-        address _bizDevelopTokenWallet,
-        address _markettingTokenWallet,
-        address _airdropTokenWallet,
         address[] _owners
     ) public
     {
         teamWallet = _teamWallet;
-
-        founderTokenWallet = _founderTokenWallet;
-        researchTokenWallet = _researchTokenWallet;
-        bizDevelopTokenWallet = _bizDevelopTokenWallet;
-        markettingTokenWallet = _markettingTokenWallet;
-        airdropTokenWallet = _airdropTokenWallet;
-
         _setOwners(_owners);
     }
 
@@ -103,10 +73,8 @@ contract Fund is ICrowdsaleFund, MultiOwnable {
     /**
      * @dev Callback is called after crowdsale finalization if soft cap is reached
      */
-    function onCrowdsaleEnd() external onlyCrowdsale {
+    function onCrowdsaleEnd() public onlyCrowdsale {
         state = FundState.TeamWithdraw;
-        lastWithdrawTime = now;
-        tap = INITIAL_TAP;
         crowdsaleEndDate = now;
     }
 
@@ -133,28 +101,20 @@ contract Fund is ICrowdsaleFund, MultiOwnable {
         contributions[msg.sender] = 0;
         token.destroy(msg.sender, token.balanceOf(msg.sender));
         msg.sender.transfer(refundAmount);
-        RefundContributor(msg.sender, refundAmount, now);
+        emit RefundContributor(msg.sender, refundAmount, now);
     }
 
     /**
-     * @dev Control tab amount. If new amount is over current fund balance, then set current balance as new amount.
-     */
-    function calcTapAmount() internal view returns(uint256) {
-        uint256 amount = SafeMath.mul(SafeMath.sub(now, lastWithdrawTime), tap);
-        if(this.balance < amount) {
-            amount = this.balance;
-        }
-        return amount;
-    }
+    * @dev Function is called by owner to refund payments if crowdsale failed to reach soft cap
+    */
+    function refundByOwner(address contributorAddress) external onlyOwner {
+        require(state == FundState.CrowdsaleRefund);
+        require(contributions[contributorAddress] > 0);
 
-    /**
-     * @dev Withdraw tap amount
-     */
-    function withdraw() public onlyOwner {
-        require(state == FundState.TeamWithdraw);
-        uint256 amount = calcTapAmount();
-        lastWithdrawTime = now;
-        teamWallet.transfer(amount);
-        Withdraw(amount, now);
+        uint256 refundAmount = contributions[contributorAddress];
+        contributions[contributorAddress] = 0;
+        token.destroy(contributorAddress, token.balanceOf(contributorAddress));
+        contributorAddress.transfer(refundAmount);
+        emit RefundContributor(contributorAddress, refundAmount, now);
     }
 }

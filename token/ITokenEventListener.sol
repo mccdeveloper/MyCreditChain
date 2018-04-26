@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.21;
 
 /**
  * @title ITokenEventListener
@@ -11,5 +11,5 @@ interface ITokenEventListener {
      * @param _to Receiver address
      * @param _value Amount of tokens
      */
-    function onTokenTransfer(address _from, address _to, uint256 _value) public;
+    function onTokenTransfer(address _from, address _to, uint256 _value) external;
 }

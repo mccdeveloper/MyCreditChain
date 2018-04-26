@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.21;
 
 import "./crowdsale/distribution/FinalizableCrowdsale.sol";
 import "./lifecycle/Pausable.sol";
@@ -10,18 +10,16 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
 
     uint256 public constant TOKEN_SALES_MAX = 420000000000000000000000000;
 
-    uint256 public constant MAINSALES_OPEN_TIME = 1525622400; //Sat May 7 00:00:00 SGT 2018
+    uint256 public constant MAINSALES_OPEN_TIME = 1525622400; //Mon May 7 00:00:00 SGT 2018
     uint256 public constant MAINSALES_CLOSE_TIME = 1527782399; //Thu May 31 23:59:59 SGT 2018
 
-    uint256 public constant PRIVATESALES_RATE = 14000;
+    uint256 public constant MAXIMUM_SALE_RATE = 14000;
     uint256 public constant MAINSALES_RATE = 10000;
-    
+
     uint256 public constant SOFT_CAP = 5000 ether;
     uint256 public constant HARD_CAP = 40000 ether;
 
-    uint256 public constant PRIVATESALES_MIN_ETHER = 10 ether;
     uint256 public constant MAINSALES_MIN_ETHER = 0.2 ether;
-    uint256 public constant EVENTSALES_MIN_ETHER = 0.2 ether;
 
     address internal tokenOwner;
 
@@ -29,6 +27,11 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
     ICrowdsaleFund public fund;
 
     int public salesCurrentTrials;       //0 - main
+
+    struct PrivateSaleData {
+        uint256 saleForMinEther;
+        uint256 rate;
+    }
 
     struct CrowdSaleInfo {
         uint256 minEtherCap; // 0.5 ether;
@@ -39,6 +42,7 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
     }
 
     CrowdSaleInfo[] inSalesInfoList;
+    PrivateSaleData[] privateSaleDataList;
 
     uint256 refundCompleted;
 
@@ -46,8 +50,7 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
     uint256 public soldTokensMainICO;
 
     mapping(address => bool) public whiteList;
-    mapping(address => bool) public privateWhiteList;
-    mapping(address => uint256) public payerEventRateList;
+    mapping(address => uint256) public privateWhiteList;
 
     address public founderTokenWallet;
     address public researchTokenWallet;
@@ -112,15 +115,7 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
     * @dev Reverts if beneficiary is not whitelisted for private sale. Can be used when extending this contract.
     */
     modifier isPrivateWhitelisted(address _wallet) {
-        require(privateWhiteList[_wallet]);
-        _;
-    }
-
-    /**
-    * @dev Reverts if beneficiary is not whitelisted for event sale. Can be used when extending this contract.
-    */
-    modifier isPayerEventWhitelisted(address _wallet) {
-        require(payerEventRateList[_wallet] > 0);
+        require(privateWhiteList[_wallet] > 0);
         _;
     }
 
@@ -129,7 +124,7 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
      */
     function setSaleInfo(uint _salesTrials, uint256 _openingTime, uint256 _closingTime, uint256 _rate, uint256 _minETHCap, string _desc) public onlyOwner
     {
-        CrowdSaleInfo saleInfo = inSalesInfoList[_salesTrials];
+        CrowdSaleInfo storage saleInfo = inSalesInfoList[_salesTrials];
 
         saleInfo.openTime = _openingTime;
         saleInfo.closeTime = _closingTime;
@@ -142,7 +137,7 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
             closingTime = saleInfo.closeTime;
             rate = saleInfo.rate;
         }
-        fncReturnVAL(SUCCEED);
+        emit fncReturnVAL(SUCCEED);
     }
 
     /**
@@ -150,7 +145,7 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
      */
     function getCurrentSalesInfo() public view returns (uint256, uint256, uint256, uint256, string) {
         require(salesCurrentTrials >= 0);
-        
+
         CrowdSaleInfo memory saleInfo = inSalesInfoList[uint(salesCurrentTrials)];
 
         return (saleInfo.openTime, saleInfo.closeTime, saleInfo.rate, saleInfo.minEtherCap, saleInfo.description);
@@ -161,7 +156,7 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
      */
     function startSales(uint _salesTrial) public onlyOwner {
         require(int(_salesTrial) >= salesCurrentTrials);
-        
+
         CrowdSaleInfo memory saleInfo = inSalesInfoList[_salesTrial];
 
         require(0 < saleInfo.rate);
@@ -175,7 +170,7 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
 
         paused = false;
 
-        fncReturnVAL(SUCCEED);
+        emit fncReturnVAL(SUCCEED);
     }
 
     /**
@@ -186,18 +181,18 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
     }
 
     /**
-    * @dev Adds list of addresses to whitelist. Not overloaded due to limitations with truffle testing. 
+    * @dev Adds list of addresses to whitelist. Not overloaded due to limitations with truffle testing.
     * @param _beneficiaries Addresses to be added to the whitelist
     */
     function addManyToWhitelist(address[] _beneficiaries) external onlyOwner {
         for (uint256 i = 0; i < _beneficiaries.length; i++) {
             whiteList[_beneficiaries[i]] = true;
         }
-        fncReturnVAL(SUCCEED);
+        emit fncReturnVAL(SUCCEED);
     }
 
     /**
-    * @dev Removes single address from whitelist. 
+    * @dev Removes single address from whitelist.
     * @param _beneficiary Address to be removed to the whitelist
     */
     function removeFromWhitelist(address _beneficiary) external onlyOwner {
@@ -205,40 +200,27 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
     }
 
     /**
-     *@dev Check if wallet is registered in whitelist. 
+     *@dev Check if wallet is registered in whitelist.
      */
     function isRegisteredWhiteList(address _beneficiary) external view returns (bool) {
         return whiteList[_beneficiary];
     }
 
     /**
-     * @dev Add wallet to whitelist for private. For contract owner only.
-     */
-    function addToPrivateWhiteList(address _wallet) public onlyOwner {
-        privateWhiteList[_wallet] = true;
-    }
-   
-    /**
-     *@dev Check if wallet is registered in private Whitelist. 
-     */
-    function isRegisteredPrivateWhiteList(address _wallet) public view onlyOwner returns (bool) {
-        return privateWhiteList[_wallet];
-    }
-   
-    /**
-     * @dev buy tokens who is registered in private wallet list
+     * @dev buy tokens who is registered in private wallet list with arbitrary rate for private sale
      * @param _beneficiary address to handle private sale
      */
     function buyTokensPrivate(address _beneficiary) external payable isPrivateWhitelisted(msg.sender) {
         require(_beneficiary != address(0));
-        require(msg.value >= PRIVATESALES_MIN_ETHER);
+        uint256 privateSaleDataListIndex = privateWhiteList[msg.sender].sub(1);
+        require(msg.value >= privateSaleDataList[privateSaleDataListIndex].saleForMinEther);
 
         uint256 weiAmount = msg.value;
 
         // update state
         weiRaised = weiRaised.add(weiAmount);
 
-        uint256 _tokenAmount = weiAmount.mul(PRIVATESALES_RATE);
+        uint256 _tokenAmount = weiAmount.mul(privateSaleDataList[privateSaleDataListIndex].rate);
 
         require(getTotalTokensSold().add(_tokenAmount) <= TOKEN_SALES_MAX);
 
@@ -246,40 +228,46 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
         fund.processContribution.value(msg.value)(_beneficiary);
         soldTokensPrivateICO = SafeMath.add(soldTokensPrivateICO, _tokenAmount);
 
-        fncReturnVAL(SUCCEED);
+        whiteList[_beneficiary] = true;
+
+        emit fncReturnVAL(SUCCEED);
     }
 
     /**
-     * @dev buy tokens who is registered in private wallet list with arbitrary rate for event sale
-     * @param _beneficiary address to handle event sale
+     * @dev Add wallet to private whitelist with minimum purchase amount and rate. For contract owner only.
+     * minimum purchase amount(uint256 min) must be wei
      */
-    function buyTokensEvent(address _beneficiary) external payable isPayerEventWhitelisted(msg.sender) {
-        require(_beneficiary != address(0));
-        require(msg.value >= EVENTSALES_MIN_ETHER);
+    function addToPrivateWhiteList(address _payer, uint256 _min, uint256 _rate) public onlyOwner {
+        require(MAINSALES_RATE <= _rate && _rate <= MAXIMUM_SALE_RATE);
 
-        uint256 weiAmount = msg.value;
+        if (privateWhiteList[_payer] > 0) {
+            uint256 privateSaleDataListIndex = privateWhiteList[_payer].sub(1);
+            privateSaleDataList[privateSaleDataListIndex].saleForMinEther = _min;
+            privateSaleDataList[privateSaleDataListIndex].rate = _rate;
+        } else {
+            PrivateSaleData memory privateSaleData;
 
-        // update state
-        weiRaised = weiRaised.add(weiAmount);
+            privateSaleData.saleForMinEther = _min;
+            privateSaleData.rate = _rate;
 
-        uint256 _tokenAmount = weiAmount.mul(payerEventRateList[msg.sender]);
+            privateSaleDataList.push(privateSaleData);
 
-        require(getTotalTokensSold().add(_tokenAmount) <= TOKEN_SALES_MAX);
-
-        token.issue(_beneficiary, _tokenAmount);
-        fund.processContribution.value(msg.value)(_beneficiary);
-        soldTokensPrivateICO = SafeMath.add(soldTokensPrivateICO, _tokenAmount);
-
-        fncReturnVAL(SUCCEED);
+            privateWhiteList[_payer] = privateSaleDataList.length;
+        }
     }
 
-    function addPayerEventRate(address _payer, uint256 _rate) public onlyOwner {
-        require(MAINSALES_RATE <= _rate && _rate <= PRIVATESALES_RATE);
-        payerEventRateList[_payer] = _rate;
+    function getPrivateSaleRate(address _payer) external view returns (uint256) {
+        if (privateWhiteList[_payer] > 0) {
+            return privateSaleDataList[privateWhiteList[_payer].sub(1)].rate;
+        }
+        return 0;
     }
 
-    function getEventRate(address _payer) external view returns (uint256) {
-        return payerEventRateList[_payer];
+    function getPrivateSaleMinumum(address _payer) external view returns (uint256) {
+        if (privateWhiteList[_payer] > 0) {
+            return privateSaleDataList[privateWhiteList[_payer].sub(1)].saleForMinEther;
+        }
+        return 0;
     }
 
   /**
@@ -298,7 +286,7 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
      */
     function _preValidatePurchase(address _beneficiary, uint256 _weiAmount) internal whenNotPaused isWhitelisted(_beneficiary) {
         require(salesCurrentTrials >= 0);
-        
+
         CrowdSaleInfo memory saleInfo = inSalesInfoList[uint(salesCurrentTrials)];
         require(_weiAmount >= saleInfo.minEtherCap);
 
@@ -315,7 +303,7 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
         require(getTotalTokensSold().add(_tokenAmount) <= TOKEN_SALES_MAX);
 
         token.issue(msg.sender, _tokenAmount);
-       
+
         soldTokensMainICO = SafeMath.add(soldTokensMainICO, _tokenAmount);
     }
 
@@ -348,7 +336,7 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
         if (capReached()) {
             fund.onCrowdsaleEnd();
             token.setAllowTransfers(true);
-       
+
             uint256 totalToken = token.totalSupply();
 
             token.transfer(founderTokenWallet, totalToken.mul(23).div(100));
@@ -357,6 +345,7 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
             token.transfer(markettingTokenWallet, totalToken.mul(2).div(100));
             token.transfer(airdropTokenWallet, totalToken.mul(29).div(100));
 
+            //crowdsale remain token send airdropTokenWallet
             token.transfer(airdropTokenWallet, token.balanceOf(this));
 
         } else {
@@ -364,4 +353,6 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
         }
         token.finishIssuance();
     }
+
+
 }
