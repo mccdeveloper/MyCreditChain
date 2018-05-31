@@ -19,7 +19,7 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
     uint256 public constant SOFT_CAP = 5000 ether;
     uint256 public constant HARD_CAP = 25000 ether;
 
-    uint256 public constant MAINSALES_MIN_ETHER = 0.2 ether;
+    uint256 public constant MAINSALES_MIN_ETHER = 0.2 ether; // not confirmed yet
 
     address internal tokenOwner;
 

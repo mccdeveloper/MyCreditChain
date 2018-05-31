@@ -44,7 +44,7 @@ MyCreditChain(MCC) is a blockchain platform of personal credit information. This
         5.  **MAINSALES_RATE**         - main sales distribution rate, MCC 10000 per 1 ETH
         6.  **SOFT_CAP**               - ico soft cap. 5000 ETH
         7. **HARD_CAP**                - ico hard cap, 25000 ETH;
-        8. **MAINSALES_MIN_ETHER**     - mainsales minimum amount to purchase, 0.2 ETH
+        8. **MAINSALES_MIN_ETHER**     - mainsales minimum amount to purchase, 0.2 ETH (not confirmed yet)
 
     - Functions:
 
