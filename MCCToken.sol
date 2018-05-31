@@ -56,4 +56,13 @@ contract MCCToken is TransferLimitedToken {
         balances[manager] = SafeMath.add(balances[manager], _value);
         emit Destroy(_from, _value);
     }
+
+    function burn(uint256 _amount) external onlyOwner
+    {
+        require(_amount <= balances[msg.sender]);
+
+        balances[msg.sender] = SafeMath.sub(balances[msg.sender], _amount);
+        balances[address(0)] = SafeMath.add(balances[address(0)], _amount);
+        Transfer(msg.sender, address(0), _amount);
+    }
 }

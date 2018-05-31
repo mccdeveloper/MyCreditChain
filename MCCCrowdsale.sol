@@ -10,14 +10,14 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
 
     uint256 public constant TOKEN_SALES_MAX = 420000000000000000000000000;
 
-    uint256 public constant MAINSALES_OPEN_TIME = 1525622400; //Mon May 7 00:00:00 SGT 2018
-    uint256 public constant MAINSALES_CLOSE_TIME = 1527782399; //Thu May 31 23:59:59 SGT 2018
+    uint256 public constant MAINSALES_OPEN_TIME =  1530374400; // Sun July 1st 00:00:00 SGT 2018 (not confirmed yet)
+    uint256 public constant MAINSALES_CLOSE_TIME = 1533052800; // Web August 1st 00:00:00 SGT 2018 (not confirmed yet)
 
     uint256 public constant MAXIMUM_SALE_RATE = 14000;
     uint256 public constant MAINSALES_RATE = 10000;
 
     uint256 public constant SOFT_CAP = 5000 ether;
-    uint256 public constant HARD_CAP = 40000 ether;
+    uint256 public constant HARD_CAP = 25000 ether;
 
     uint256 public constant MAINSALES_MIN_ETHER = 0.2 ether;
 
@@ -53,18 +53,18 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
     mapping(address => uint256) public privateWhiteList;
 
     address public founderTokenWallet;
-    address public researchTokenWallet;
+    address public advisorTokenWallet;
     address public bizDevelopTokenWallet;
-    address public markettingTokenWallet;
+    address public marketingTokenWallet;
     address public airdropTokenWallet;
 
     function MCCCrowdsale(
         address tokenAddress,
         address fundAddress,
         address _founderTokenWallet,
-        address _researchTokenWallet,
+        address _advisorTokenWallet,
         address _bizDevelopTokenWallet,
-        address _markettingTokenWallet,
+        address _marketingTokenWallet,
         address _airdropTokenWallet,
         address _owner
     ) public
@@ -78,9 +78,9 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
         fund = ICrowdsaleFund(fundAddress);
 
         founderTokenWallet = _founderTokenWallet;
-        researchTokenWallet = _researchTokenWallet;
+        advisorTokenWallet = _advisorTokenWallet;
         bizDevelopTokenWallet = _bizDevelopTokenWallet;
-        markettingTokenWallet = _markettingTokenWallet;
+        marketingTokenWallet = _marketingTokenWallet;
         airdropTokenWallet = _airdropTokenWallet;
 
         tokenOwner = _owner;
@@ -340,14 +340,13 @@ contract MCCCrowdsale is FinalizableCrowdsale, Pausable, IEventReturn {
             uint256 totalToken = token.totalSupply();
 
             token.transfer(founderTokenWallet, totalToken.mul(23).div(100));
-            token.transfer(researchTokenWallet, totalToken.mul(1).div(100));
-            token.transfer(bizDevelopTokenWallet, totalToken.mul(3).div(100));
-            token.transfer(markettingTokenWallet, totalToken.mul(2).div(100));
-            token.transfer(airdropTokenWallet, totalToken.mul(29).div(100));
+            token.transfer(advisorTokenWallet, totalToken.mul(5).div(100));
+            token.transfer(bizDevelopTokenWallet, totalToken.mul(5).div(100));
+            token.transfer(marketingTokenWallet, totalToken.mul(9).div(100));
+            token.transfer(airdropTokenWallet, totalToken.mul(23).div(100));
 
-            //crowdsale remain token send airdropTokenWallet
-            token.transfer(airdropTokenWallet, token.balanceOf(this));
-
+            // unsold tokens will be burned
+            token.burn(token.balanceOf(this));
         } else {
             fund.enableCrowdsaleRefund();
         }
