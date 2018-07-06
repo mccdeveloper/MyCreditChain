@@ -1,4 +1,4 @@
-pragma solidity ^0.4.21;
+pragma solidity ^0.4.24;
 
 import "../ownership/MultiOwnable.sol";
 import "../math/SafeMath.sol";
@@ -100,10 +100,6 @@ contract ManagedToken is StandardToken, MultiOwnable {
      * @param _value Amount of tokens
      */
     function issue(address _to, uint256 _value) external onlyOwner canIssue {
-        totalSupply_ = SafeMath.add(totalSupply_, _value);
-        balances[_to] = SafeMath.add(balances[_to], _value);
-        emit Issue(_to, _value);
-        emit Transfer(address(0), _to, _value);
     }
 
     /**
@@ -113,13 +109,8 @@ contract ManagedToken is StandardToken, MultiOwnable {
      * @param _value Amount of tokens to destroy
      */
     function destroy(address _from, uint256 _value) external {
-        require(ownerByAddress[msg.sender] || msg.sender == _from);
-        require(balances[_from] >= _value);
-        totalSupply_ = SafeMath.sub(totalSupply_, _value);
-        balances[_from] = SafeMath.sub(balances[_from], _value);
-        emit Destroy(_from, _value);
     }
-
+    
     /**
      * @dev Increase the amount of tokens that an owner allowed to a spender.
      *
@@ -161,9 +152,8 @@ contract ManagedToken is StandardToken, MultiOwnable {
      * @dev Finish token issuance
      * @return True if success
      */
-    function finishIssuance() public onlyOwner returns (bool) {
+    function finishIssuance() public onlyOwner {
         issuanceFinished = true;
         emit IssuanceFinished();
-        return true;
     }
 }

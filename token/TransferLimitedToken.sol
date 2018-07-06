@@ -1,6 +1,6 @@
-pragma solidity ^0.4.21;
+pragma solidity ^0.4.24;
 
-import './ManagedToken.sol';
+import "./ManagedToken.sol";
 
 /**
  * @title TransferLimitedToken
@@ -61,11 +61,13 @@ contract TransferLimitedToken is ManagedToken {
     }
 
     /**
-     * @dev Disable transfer limit manually. Can be called only by manager
+     * @dev Enable/disable token transfers limited wallet. Can be called only by manager
+     * @param _setLimitEnabled True - enable limit transfer False - disable
      */
-    function disableLimit() public onlyManager {
-        isLimitEnabled = false;
+    function setLimitEnabled(bool _setLimitEnabled) public onlyManager {
+        isLimitEnabled = _setLimitEnabled;
     }
+    
 
     /**
      * @dev Override transfer function. Add canTransfer modifier to check possibility of transferring
