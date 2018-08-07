@@ -114,7 +114,6 @@ contract MCCCrowdsale is Pausable, IEventReturn {
         require(_fundAddress != address(0));
 
         rate = MAINSALES_RATE;
-        wallet = _fundAddress;
      
         token = MCCToken(_tokenAddress);
         fund = ICrowdsaleFund(_fundAddress);
