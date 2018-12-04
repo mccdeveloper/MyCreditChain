@@ -1,13 +1,9 @@
-# MyCreditChain(MCC) ICO
+# MyCreditChain(MCC) Token
 
 MyCreditChain(MCC) is a blockchain platform of personal credit information. This project aims to bring the ownership of credit information back to individuals. MCC revolutionizes the all process of how personal credit information is gathered and used. Moreover, MCC can further revolutionize our interaction with one another in one global network. 
 
 # Smart Contract
 
-- ## MCCFund
-
-    - MCCFund contract manages funds and provides refund functionality. For refunding, MCCFund maintains investor wallet list and funds
-    - MCCFund contract applies "MultiOwnable". "MultiOwnable" system prevents that fund is abused by a specified person
 
 - ## MCCToken
     - MCCToken is based on ERC20 standard.
@@ -30,31 +26,6 @@ MyCreditChain(MCC) is a blockchain platform of personal credit information. This
         3. **increaseApproval(address _spender, uint _addedValue) public returns (bool)** - Increase the amount of tokens that an owner allowed to a spender. approve should be called when allowed[_spender] == 0. To increment allowed value is better to use this function to avoid 2 calls (and wait until the first transaction is mined)
         4. **decreaseApproval(address _spender, uint _subtractedValue) public returns (bool)** - Decrease the amount of tokens that an owner allowed to a spender. approve should be called when allowed[_spender] == 0. To decrement allowed value is better to use this function to avoid 2 calls (and wait until the first transaction is mined)
 
-- ## MCCCrowdsale
-    - MCCCrowdsale manages crowdsale functionality like buying tokens, setting sale duration, starting sale, finalizing sale and so on
-    - MCCCrowdsale only allow the investors who is registered in whitelist to join the sales in sale duration
-    - Finalize functionality has two side. MCC token distribution will start in the case the sales reaches soft cap or else refund will start
-
-    - Public Constants:
-
-        1.  **TOKEN_SALES_MAX**        - token total supply amount
-        2.  **MAINSALES_OPEN_TIME**    - Sun July 1st 00:00:00 SGT 2018 (not confirmed yet)
-        3.  **MAINSALES_CLOSE_TIME**   - Web August 1st 00:00:00 SGT 2018 (not confirmed yet)
-        4.  **MAXIMUM_SALE_RATE**      - the limitation oftoken distribution rate, MCC 14000 per 1 ETH
-        5.  **MAINSALES_RATE**         - main sales distribution rate, MCC 10000 per 1 ETH
-        6.  **SOFT_CAP**               - ico soft cap. 5000 ETH
-        7. **HARD_CAP**                - ico hard cap, 25000 ETH
-        8. **MAINSALES_MIN_ETHER**     - mainsales minimum amount to purchase, 0.2 ETH (not confirmed yet)
-
-    - Functions:
-
-        1. **setSaleInfo(uint _salesTrials, uint256 _openingTime, uint256 _closingTime, uint256 _rate, uint256 _minETHCap, string _desc) public onlyOwner** - Set crowdsales information. sale duration, sale tokens rate, softcap etc..
-        2. **startSales(uint _salesTrial) public onlyOwner** - Activate crowdsale by assigining sale duration and rate
-        3. **addToWhiteList(address _wallet) public onlyOwner** - Add wallet to whitelist. For contract owner only.
-        4. **buyTokensPrivate(address _beneficiary) external payable isPrivateWhitelisted(msg.sender)** - buy tokens who is registered in private wallet list
-        5. **buyTokensEvent(address _beneficiary) external payable isPrivateWhitelisted(msg.sender)** - buy tokens who is registered in private wallet list with arbitrary rate for event sale
-        6. **buyTokens(address _beneficiary) public payable** - low level token purchase
-        7. **finalization() internal** - make token transfer available and distribute MCC token
 
 # Future Plans
 ![Alt text](https://www.mycreditchain.org/images/mcc-eco.png "MCC ECO SYSTEM")
